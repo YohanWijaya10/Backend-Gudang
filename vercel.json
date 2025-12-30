@@ -7,6 +7,7 @@
       "maxDuration": 10,
       "includeFiles": [
         "node_modules/.prisma/client/**",
+        "node_modules/@prisma/client/**",
         "prisma/schema.prisma"
       ]
     }
@@ -16,4 +17,3 @@
     "CORS_ORIGIN": "*"
   }
 }
-

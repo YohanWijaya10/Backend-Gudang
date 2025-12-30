@@ -30,11 +30,10 @@ app.use(
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 300 })
 app.use(limiter)
 
-// Routes
-app.use('/api', apiRouter)
+// Routes (mount at root; Vercel serves this under /api)
+app.use('/', apiRouter)
 
 // Error handler
 app.use(errorHandler)
 
 export default app
-
