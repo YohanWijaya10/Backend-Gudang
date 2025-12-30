@@ -1,0 +1,148 @@
+// Prisma schema for Factory backend
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["factory"]
+}
+
+enum InventoryTrxType {
+  RECEIPT
+  ISSUE
+  ADJUSTMENT
+  TRANSFER_IN
+  TRANSFER_OUT
+  @@schema("factory")
+}
+
+enum POStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  RECEIVED
+  CLOSED
+  CANCELED
+  @@schema("factory")
+}
+
+model Product {
+  productId String  @id @db.Text
+  sku       String? @unique
+  name      String
+  category  String?
+  uom       String  @default("pcs")
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  inventoryBalances  InventoryBalance[]
+  poItems            PurchaseOrderItem[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@schema("factory")
+}
+
+model Warehouse {
+  warehouseId String  @id @db.Text
+  name        String
+  location    String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+
+  inventoryBalances InventoryBalance[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@schema("factory")
+}
+
+model Supplier {
+  supplierId String  @id @db.Text
+  name       String
+  phone      String?
+  address    String?
+  termsDays  Int     @default(0)
+  isActive   Boolean @default(true)
+  createdAt  DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+
+  @@schema("factory")
+}
+
+model InventoryBalance {
+  warehouseId  String
+  productId    String
+  qtyOnHand    Decimal @default(0.000) @db.Decimal(18, 3)
+  qtyReserved  Decimal @default(0.000) @db.Decimal(18, 3)
+  safetyStock  Decimal @default(0.000) @db.Decimal(18, 3)
+  reorderPoint Decimal @default(0.000) @db.Decimal(18, 3)
+  updatedAt    DateTime @default(now())
+
+  product   Product   @relation(fields: [productId], references: [productId])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [warehouseId])
+
+  @@id([warehouseId, productId])
+  @@index([productId])
+  @@schema("factory")
+}
+
+model InventoryTransaction {
+  trxId       BigInt   @id @default(autoincrement())
+  trxDate     DateTime @default(now())
+  warehouseId String
+  productId   String
+  trxType     InventoryTrxType
+  qty         Decimal  @db.Decimal(18, 3)
+  signedQty   Decimal? @db.Decimal(18, 3)
+  refType     String?
+  refId       String?
+  note        String?
+  createdAt   DateTime @default(now())
+
+  product   Product   @relation(fields: [productId], references: [productId])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [warehouseId])
+
+  @@index([trxDate(sort: Desc)])
+  @@index([productId, trxDate(sort: Desc)])
+  @@index([warehouseId, productId, trxDate(sort: Desc)])
+  @@schema("factory")
+}
+
+model PurchaseOrder {
+  poId         String   @id @db.Text
+  supplierId   String
+  poDate       DateTime @default(now())
+  expectedDate DateTime?
+  status       POStatus @default(DRAFT)
+  currency     String   @default("IDR")
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items    PurchaseOrderItem[]
+  supplier Supplier @relation(fields: [supplierId], references: [supplierId])
+
+  @@index([supplierId, poDate(sort: Desc)])
+  @@schema("factory")
+}
+
+model PurchaseOrderItem {
+  poItemId    BigInt  @id @default(autoincrement())
+  poId        String
+  productId   String
+  qtyOrdered  Decimal @db.Decimal(18, 3)
+  unitCost    Decimal @db.Decimal(18, 2)
+  qtyReceived Decimal @default(0.000) @db.Decimal(18, 3)
+  createdAt   DateTime @default(now())
+
+  po      PurchaseOrder @relation(fields: [poId], references: [poId], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [productId])
+
+  @@unique([poId, productId])
+  @@index([poId])
+  @@schema("factory")
+}
