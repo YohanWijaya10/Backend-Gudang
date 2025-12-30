@@ -33,6 +33,11 @@ app.use(limiter)
 // Routes (mount at root; Vercel serves this under /api)
 app.use('/', apiRouter)
 
+// Debug root route to verify serverless reachability
+app.get('/', (_req, res) => {
+  res.json({ ok: true, message: 'serverless root reached' })
+})
+
 // Error handler
 app.use(errorHandler)
 
