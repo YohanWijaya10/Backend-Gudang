@@ -38,6 +38,11 @@ app.get('/', (_req, res) => {
   res.json({ ok: true, message: 'serverless root reached' })
 })
 
+// 404 JSON handler to avoid serverless timeouts on unmatched routes
+app.use((req, res) => {
+  res.status(404).json({ error: { code: 'NOT_FOUND', message: `Route not found: ${req.method} ${req.originalUrl}` } })
+})
+
 // Error handler
 app.use(errorHandler)
 
