@@ -42,6 +42,18 @@ Node.js + Express + TypeScript + Prisma (Neon Postgres) backend. JSON-only REST 
 
 Server listens on `PORT` (default 3000). All endpoints are under `/api` and return JSON only.
 
+## Deploy to Vercel (Serverless)
+
+This repo is ready for Vercel serverless using `api/index.ts`.
+
+- Ensure Prisma client is generated during install (Vercel runs `npm install`). We added a `postinstall` implicitly via `vercel-build` script; to be safe, run `prisma generate` locally before pushing.
+- Set `DATABASE_URL` in Vercel Project Settings → Environment Variables (recommended: Neon Postgres). Add secret as `database_url` if you use the `vercel.json` mapping.
+- Push the repo to GitHub and import into Vercel. Vercel will build and expose your API at `/api/*`.
+- Note: Run migrations outside Vercel build: `npm run db:deploy` from local or CI.
+
+Local serverless test (optional):
+- `npm run build` then `vercel dev` (if you have Vercel CLI) to emulate `/api` endpoint.
+
 ## Key Endpoints
 
 - Products
@@ -104,4 +116,3 @@ curl -X POST http://localhost:3000/api/purchase-orders \
 - Basic security via `helmet` and request rate limiting.
 - Error format: `{ error: { code, message, details? } }`.
 - Prisma models use Postgres schema `factory`.
-
