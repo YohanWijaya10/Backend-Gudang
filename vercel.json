@@ -2,9 +2,13 @@
   "version": 2,
   "functions": {
     "api/index.ts": {
-      "runtime": "nodejs18.x",
       "memory": 1024,
-      "maxDuration": 10
+      "maxDuration": 10,
+      "includeFiles": [
+        "node_modules/.prisma/client/**",
+        "node_modules/@prisma/client/**",
+        "prisma/schema.prisma"
+      ]
     }
   }
 }
