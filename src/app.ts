@@ -39,11 +39,11 @@ const limiter = rateLimit({
 })
 app.use(limiter)
 
-// Routes (mount at root; Vercel serves this under /api)
-app.use('/', apiRouter)
+// Routes (mount at /api because Vercel serves this function under /api)
+app.use('/api', apiRouter)
 
-// Debug root route to verify serverless reachability
-app.get('/', (_req, res) => {
+// Debug route for /api
+app.get('/api', (_req, res) => {
   res.json({ ok: true, message: 'serverless root reached' })
 })
 
