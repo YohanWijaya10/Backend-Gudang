@@ -13,6 +13,8 @@ const app = express()
 
 // JSON-only API settings
 app.set('json replacer', (_key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value))
+// Trust proxy for correct client IPs behind Vercel
+app.set('trust proxy', true)
 
 // Middlewares
 app.use(helmet())
@@ -27,7 +29,14 @@ app.use(
 )
 
 // Basic rate limiting (optional)
-const limiter = rateLimit({ windowMs: 60 * 1000, max: 300 })
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  // On Vercel, req.ip may be undefined; disable strict validations
+  validate: false,
+})
 app.use(limiter)
 
 // Routes (mount at root; Vercel serves this under /api)
